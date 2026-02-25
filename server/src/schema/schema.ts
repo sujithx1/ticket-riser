@@ -13,7 +13,7 @@ import {
 //schema for issue tracker
 
 
-export const task_schema= pgSchema("tasks");
+export const task_schema= pgSchema("tasks")
 
 
 
