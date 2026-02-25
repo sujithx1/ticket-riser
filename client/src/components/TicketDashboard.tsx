@@ -1,56 +1,178 @@
-import { Box, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import type { CreateTicketFormValues, Issue } from '@/types/types';
+import AddIcon from '@mui/icons-material/Add';
+import {
+  Box, Button, Divider, Paper,
+  Stack,
+  Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, Typography
+} from '@mui/material';
 import { useState } from 'react';
 import CreateTicketDialog from './CreateTicket';
 import { TicketRow } from './TicketRow';
+// Import the types we created
 
-export default function TicketDashboard({ issues, commentsData }: any) {
+// interface DashboardProps {
+//   initialIssues: Issue[];
+//   commentsData: Record<string, Comment[]>;
+// }
+
+export default function TicketDashboard({ initialIssues, commentsData }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  // Maintain local state for issues so Sujith's new tickets show up immediately
+  const [issues, setIssues] = useState<Issue[]>(initialIssues);
 
-  const handleNewTicket = (data: any) => {
-    console.log("Inserting into Drizzle:", data);
-    // Add your db logic here
+  const handleNewTicket = (data: CreateTicketFormValues) => {
+    // 1. Prepare the new issue object (matching Drizzle schema)
+    const newIssue: Issue = {
+      id: crypto.randomUUID(),
+      title: data.title,
+      description: data.description,
+      status: data.status,
+      priority: data.priority,
+      attachments: data.attachments,
+      createdAt: new Date(),
+      closedAt: null,
+      escalationLevel: 0,
+      createdBy: 'u-1', // Sujith's ID
+    };
+
+    // 2. Update the UI state
+    setIssues(prev => [newIssue, ...prev]);
+    
+    // 3. Logic to call your API route would go here
+    console.log("Transmitting to Drizzle Backend:", newIssue);
   };
+
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f1f5f9', p: 4 }}>
-
-      <Button 
-        variant="contained" 
-        onClick={() => setDialogOpen(true)}
-        sx={{ bgcolor: '#0ea5e9' }}
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f8fafc', p: { xs: 2, md: 4 } }}>
+      
+      {/* HEADER SECTION - ALIGNED */}
+      <Stack 
+        direction="row" 
+        justifyContent="space-between" 
+        alignItems="flex-end" 
+        sx={{ mb: 4 }}
       >
-        New Ticket
-      </Button>
-      <Box mb={4}>
-        <Typography variant="h4" sx={{ fontWeight: 900, color: '#0f172a', letterSpacing: '-1.5px' }}>
-          CONTROL_<span style={{ color: '#0ea5e9' }}>HUB</span>
-        </Typography>
-        <Typography variant="caption" sx={{ color: '#64748b', fontFamily: 'monospace' }}>
-          TICKET_SYSTEM_STATUS: ACTIVE // STACK: DRIZZLE_MUI_V6
-        </Typography>
-      </Box>
+      <Box>
+  {/* Branding */}
+  <Typography 
+    variant="h4" 
+    sx={{ 
+      fontWeight: 950, // Extra bold for industrial feel
+      // color: '#0f172a',
+      color: 'orange', 
+      letterSpacing: '-2px',
+      lineHeight: 1
+    }}
+  >
+    MAGADH_<span style={{ color: '#0ea5e9' }}>TICKETS</span>
+  </Typography>
+  
+  {/* System Metadata */}
+  <Stack direction="row" spacing={1.5} alignItems="center" mt={0.5}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+      <Box 
+        sx={{ 
+          width: 6, 
+          height: 6, 
+          bgcolor: '#22c55e', 
+          borderRadius: '50%', 
+          animation: 'pulse 2s infinite ease-in-out',
+          '@keyframes pulse': {
+            '0%': { opacity: 0.5, transform: 'scale(1)' },
+            '50%': { opacity: 1, transform: 'scale(1.2)' },
+            '100%': { opacity: 0.5, transform: 'scale(1)' },
+          }
+        }} 
+      />
+      <Typography 
+        variant="caption" 
+        sx={{ 
+          color: '#64748b', 
+          fontFamily: 'monospace', 
+          fontWeight: 700,
+          fontSize: '0.7rem'
+        }}
+      >
+        SYSTEM_ACTIVE
+      </Typography>
+    </Box>
+    
+    <Divider orientation="vertical" flexItem sx={{ height: 12, my: 'auto' }} />
+    
+    <Typography 
+      variant="caption" 
+      sx={{ 
+        color: '#94a3b8', 
+        fontFamily: 'monospace', 
+        fontSize: '0.7rem'
+      }}
+    >
+      UNIT: INDUSTRIAL_LOGISTICS // SECTOR: IT_INFRA
+    </Typography>
+  </Stack>
+</Box>
 
-      <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+        <Button 
+          variant="contained" 
+          startIcon={<AddIcon />}
+          onClick={() => setDialogOpen(true)}
+          sx={{ 
+            bgcolor: '#0ea5e9', 
+            borderRadius: '10px',
+            px: 3,
+            fontWeight: 700,
+            textTransform: 'none',
+            '&:hover': { bgcolor: '#0284c7' }
+          }}
+        >
+          New Uplink
+        </Button>
+      </Stack>
+
+      {/* DATA TABLE */}
+      <TableContainer 
+        component={Paper} 
+        elevation={0} 
+        sx={{ 
+          borderRadius: '16px', 
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+        }}
+      >
         <Table aria-label="collapsible table">
           <TableHead sx={{ bgcolor: '#f8fafc' }}>
             <TableRow>
-              <TableCell width="50px" />
-              <TableCell sx={{ fontWeight: 'bold', color: '#64748b' }}>UUID</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: '#64748b' }}>SUBJECT</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: '#64748b' }}>PRIORITY</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: '#64748b' }}>STATUS</TableCell>
+              <TableCell width="60px" />
+              <TableCell sx={{ fontWeight: 800, color: '#64748b', fontSize: '0.75rem' }}>UUID</TableCell>
+              <TableCell sx={{ fontWeight: 800, color: '#64748b', fontSize: '0.75rem' }}>SUBJECT_INTEL</TableCell>
+              <TableCell sx={{ fontWeight: 800, color: '#64748b', fontSize: '0.75rem' }}>PRIORITY</TableCell>
+              <TableCell sx={{ fontWeight: 800, color: '#64748b', fontSize: '0.75rem' }}>STATUS</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {
-           
-           issues&&
-            issues.length>0&&
-            issues.map((row: any) => (
-              <TicketRow key={row.id} row={row} initialComments={commentsData[row.id]||[]}  />
-            ))}
+            {issues && issues.length > 0 ? (
+              issues.map((row) => (
+                <TicketRow 
+                  key={row.id} 
+                  row={row} 
+                  initialComments={commentsData[row.id] || []}  
+                />
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} align="center" sx={{ py: 10 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    No active uplinks found in database.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* CREATE MODAL */}
       <CreateTicketDialog 
         open={dialogOpen} 
         onClose={() => setDialogOpen(false)} 

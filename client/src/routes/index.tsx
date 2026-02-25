@@ -1,9 +1,5 @@
-import { CommentInput } from '@/components/ChatInput'
-import { CommentThread } from '@/components/Comment'
-import TicketDashboard from '@/components/TicketDashboard'
-import CreateTicketPage from '@/components/TicketForm'
-import { TicketHeader } from '@/components/TicketHeader'
-import { createFileRoute } from '@tanstack/react-router'
+import TicketDashboard from '@/components/TicketDashboard';
+import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({ component: App })
 export const MOCK_ISSUES = [
@@ -75,14 +71,11 @@ function App() {
     <>
     
 
-    <TicketHeader />
-    <CreateTicketPage/>
-    <CommentThread comments={[]} />
-    <CommentInput onSend={() => {}} />
+   
 
 
 
-<TicketDashboard issues={MOCK_ISSUES} commentsData={MOCK_COMMENTS} />
+<TicketDashboard initialIssues={MOCK_ISSUES} commentsData={MOCK_COMMENTS} />
     </>
    
   )
