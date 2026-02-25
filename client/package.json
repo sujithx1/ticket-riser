@@ -6,12 +6,19 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "vite dev --port 3000",
+    "dev": "vite dev --host ",
+    "dev:port": "vite dev --port 3000 --host ",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.2.4",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mdspl/mds-shared-ui": "^1.2.9",
+    "@mui/icons-material": "^7.3.8",
+    "@mui/material": "^7.3.8",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "^0.7.0",
     "@tanstack/react-router": "^1.132.0",
@@ -24,7 +31,6 @@
   },
   "devDependencies": {
     "@tanstack/devtools-vite": "^0.3.11",
-    "@tanstack/router-plugin": "^1.132.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
     "@types/node": "^22.10.2",
