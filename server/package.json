@@ -1,11 +1,12 @@
 {
   "name": "server",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
+    "dev": "bun run --hot src/server.ts",
     "generate": "bunx drizzle-kit generate",
     "migrate": "bunx drizzle-kit migrate"
   },
   "dependencies": {
+    "@magadhtech/mds-schema": "^1.0.165",
     "@types/pg": "^8.16.0",
     "drizzle-kit": "^0.31.8",
     "drizzle-orm": "^0.45.1",
