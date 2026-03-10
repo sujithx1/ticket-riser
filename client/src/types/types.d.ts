@@ -27,8 +27,15 @@ export interface CreateTicketFormValues {
   title: string;
   description: string | null;
   priority: IssuePriority;
-  status: IssueStatus;
   attachments: string[] | null;
+  assignee:{
+    name: string;
+    id: string;
+    role: {
+      name: string;
+      id: string;
+    };
+  }
 }
 
 // User Context for Sujith and other teammates

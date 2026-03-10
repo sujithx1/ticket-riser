@@ -5,7 +5,7 @@
     "": {
       "name": "server",
       "dependencies": {
-        "@magadhtech/mds-schema": "^1.0.165",
+        "@magadhtech/mds-schema": "^1.0.172",
         "@types/pg": "^8.16.0",
         "drizzle-kit": "^0.31.8",
         "drizzle-orm": "^0.45.1",
@@ -79,7 +79,7 @@
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.25.12", "", { "os": "win32", "cpu": "x64" }, "sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA=="],
 
-    "@magadhtech/mds-schema": ["@magadhtech/mds-schema@1.0.165", "https://npm.pkg.github.com/download/@magadhtech/mds-schema/1.0.165/95222d3488682ef1cd808338259fe2b2d6a0815b", { "dependencies": { "bun-types": "^1.3.5", "dotenv": "^17.2.3", "pg": "^8.16.3", "typescript": "^5.9.3" }, "peerDependencies": { "drizzle-orm": "^0.45.1" } }, "sha512-RbkR+VBEibGG/s3Fs0xC9a/O2wa6O338vpboiXjsGATn2Pu9REAeXcww3J5OiIZ1ZW8z/sApCreDicqZcnOkCw=="],
+    "@magadhtech/mds-schema": ["@magadhtech/mds-schema@1.0.172", "https://npm.pkg.github.com/download/@magadhtech/mds-schema/1.0.172/936a76bb22c62643275aaf57a83ec2da62b2f461", { "dependencies": { "bun-types": "^1.3.5", "dotenv": "^17.2.3", "pg": "^8.16.3", "typescript": "^5.9.3" }, "peerDependencies": { "drizzle-orm": "^0.45.1" } }, "sha512-9Yi0j9vNOEEGWNiq1/kojm3s5Gmg7Ye+qkjoewqRNkJTmJD6iSsCqkNPwbPTJY0Wej0FTCWKCHH59So+iEv5OQ=="],
 
     "@types/bun": ["@types/bun@1.3.9", "", { "dependencies": { "bun-types": "1.3.9" } }, "sha512-KQ571yULOdWJiMH+RIWIOZ7B2RXQGpL1YQrBtLIV3FqDcCu6FsbFUBwhdKUlCKUpS3PJDsHlJ1QKlpxoVR+xtw=="],
 

@@ -15,3 +15,9 @@ export const db = drizzle(pool, { schema, logger: false });
 
 // Optional: export schema for queries
 export { schema };
+
+
+
+
+
+
