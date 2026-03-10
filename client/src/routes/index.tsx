@@ -1,3 +1,4 @@
+import AuthGate from '@/components/auth-gate/AuthGate';
 import TicketDashboard from '@/components/TicketDashboard';
 import { createFileRoute } from '@tanstack/react-router';
 
@@ -70,12 +71,10 @@ function App() {
   return (
     <>
     
+    <AuthGate>
 
-   
-
-
-
-<TicketDashboard initialIssues={MOCK_ISSUES} commentsData={MOCK_COMMENTS} />
+    <TicketDashboard initialIssues={MOCK_ISSUES} commentsData={MOCK_COMMENTS} />
+    </AuthGate>
     </>
    
   )
