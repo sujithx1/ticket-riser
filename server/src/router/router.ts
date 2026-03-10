@@ -6,6 +6,7 @@ import { db } from "../db/db";
 import { PrettierErorr } from "../helper";
 import { authenticate, getAuthSession } from "../middleware/auth.middleware";
 import { issueComments } from "../schema/schema";
+import { getDevelopers } from "../controller/controller";
 
 
 
@@ -18,6 +19,7 @@ const CreateIssueSchema =z.object({
   title:z.string().min(1,"Title is required"),
   description:z.string().optional(),
   priority_level:z.enum(["low","medium","high"]).default("low"),
+  assignee:z.string(),
   attachments:z.array(z.string()).optional(),
 })
 const EditIssueSchema =z.object({
@@ -29,8 +31,8 @@ const EditIssueSchema =z.object({
   attachments:z.array(z.string()).optional(),   
 })
 
-router.use("*",authenticate)
-router.post('/issues', async (c) => {
+// router.use("*",authenticate)
+router.post('/issue', async (c) => {
   const body = await c.req.json()
   const authUser=getAuthSession(c)
   const parsedBody = CreateIssueSchema.safeParse(body)
@@ -142,3 +144,4 @@ return c.json({
 
 
 
+router.get('/developers', getDevelopers)
