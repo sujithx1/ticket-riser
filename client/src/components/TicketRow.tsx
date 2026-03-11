@@ -1,7 +1,12 @@
-import { UsePostComment } from "@/api/api";
+import { UseDeleteComment, UsePostComment, UsePutComment } from "@/api/api";
+import copy from "copy-to-clipboard";
+
 import type { Comment, Issue } from "@/types/types";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CancelIcon from "@mui/icons-material/Cancel";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import FilePresentIcon from "@mui/icons-material/FilePresent";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -12,7 +17,10 @@ import {
   Button,
   Chip,
   Collapse,
+  Divider,
   IconButton,
+  Menu,
+  MenuItem,
   Stack,
   TableCell,
   TableRow,
@@ -21,6 +29,8 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid"; // Using Grid2 for stable layouts
 import React, { useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { useAuth } from "./auth-gate/AuthContext";
 
 interface TicketRowProps {
   row: Issue;
@@ -28,7 +38,12 @@ interface TicketRowProps {
 }
 
 export const TicketRow = ({ row, initialComments }: TicketRowProps) => {
+  const { user: currentUser } = useAuth();
+
+  const deletecommentMuntation = UseDeleteComment();
   const postcreatecommentMuntation = UsePostComment();
+  const putupdatcommentMuntation = UsePutComment();
+
   const [open, setOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
   // Local state to manage comments for this specific row
@@ -36,6 +51,73 @@ export const TicketRow = ({ row, initialComments }: TicketRowProps) => {
   const [pendingFiles, setPendingFiles] = useState<
     { file: File; preview: string }[]
   >([]);
+
+  //edit sections
+  const [isedit, setIsedit] = useState({
+    open: false,
+    id: "",
+  });
+
+  const handleIsEdit = (editComment: Comment) => {
+    console.log("editComment", editComment);
+    setNewComment(editComment.comment as string);
+    setIsedit({
+      open: true,
+      id: editComment.id,
+    });
+    handleClose();
+  };
+
+  const handleEdit_comment = () => {
+    if (!isedit.open || !isedit.id) return;
+
+    const update_data = {
+      id: isedit.id,
+      comment: newComment,
+    };
+
+    putupdatcommentMuntation.mutate(update_data, {
+      onSuccess: (data: Comment) => {
+        toast.success("Comment Updated");
+        setIsedit({
+          open: false,
+          id: "",
+        });
+        setNewComment("");
+
+        const updatedComments = comments.map((comment) => {
+          if (comment.id === data.id) {
+            return data;
+          }
+          return comment;
+        });
+        setComments(updatedComments);
+      },
+
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    });
+  };
+
+  const handledelete_comment = (id: string) => {
+    if (!id) return toast.error("Select Comment to delete Id is Missing");
+
+    deletecommentMuntation.mutate(id, {
+      onSuccess: () => {
+        toast.success("Comment Deleted");
+        const filteredComments = comments.filter(
+          (comment) => comment.id !== id,
+        );
+        setComments(filteredComments);
+        handleClose();
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    });
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,6 +168,71 @@ export const TicketRow = ({ row, initialComments }: TicketRowProps) => {
     // Update local state to show it working immediately
   };
 
+  const [contextMenu, setContextMenu] = useState<{
+    mouseX: number;
+    mouseY: number;
+    comment: Comment;
+  } | null>(null);
+
+  const handleContextMenu = (event: React.MouseEvent, comment: Comment) => {
+    if (!currentUser) {
+      return;
+    }
+    if (comment.user.id !== currentUser.id) {
+      return;
+    }
+
+    event.preventDefault(); // Stop the browser's default right-click menu
+    setContextMenu(
+      contextMenu === null
+        ? { mouseX: event.clientX + 2, mouseY: event.clientY - 6, comment }
+        : null,
+    );
+  };
+
+  const handleClose = () => setContextMenu(null);
+
+  // this will work for local and ip
+  const handleCopy = (text: string) => {
+    console.log("copied", text);
+    const toastId = toast.loading("copying data", {
+      position: "top-center",
+      style: {
+        borderRadius: "10px",
+        background: "#ffffff",
+        color: "#0f172a",
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: "0.75rem",
+        fontWeight: 800,
+        border: "1px solid #e2e8f0",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+        padding: "12px 20px",
+      },
+    });
+    copy(text);
+
+    setTimeout(() => {
+      toast.success("COPIED_TO_CLIPBOARD", {
+        id: toastId,
+        iconTheme: {
+          primary: "#10b981", // Industrial Green
+          secondary: "#fff",
+        },
+        style: {
+          borderLeft: "4px solid #10b981", // Clean success strip
+        },
+      });
+    }, 500);
+
+    handleClose();
+  };
+  // this is not wokring now because of we are using the local ip address
+  // const handleCopy = async  (text: string) => {
+  //   console.log('copied', text);
+  //  await navigator.clipboard.writeText(text);
+  //   toast.success("COPIED_TO_CLIPBOARD");
+  //   handleClose();
+  // };
   return (
     <React.Fragment>
       {/* HEADER ROW */}
@@ -300,119 +447,136 @@ export const TicketRow = ({ row, initialComments }: TicketRowProps) => {
                           >
                             {/* Comment Bubble */}
                             <Box
+                              key={c.id}
+                              onContextMenu={(e) => handleContextMenu(e, c)} // Trigger Right Click
                               sx={{
-                                p: 2,
-                                bgcolor: isDev ? "#0ea5e9" : "#fff", // Blue for Dev, White for User
-                                color: isDev ? "#fff" : "#1e293b",
-                                borderRadius: isDev
-                                  ? "16px 16px 2px 16px"
-                                  : "16px 16px 16px 2px",
-                                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                                border: isDev ? "none" : "1px solid #e2e8f0",
+                                maxWidth: "85%",
+                                alignSelf: isDev ? "flex-end" : "flex-start",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: isDev ? "flex-end" : "flex-start",
+                                cursor: "context-menu", // Visual cue for right-click
                               }}
                             >
-                              {/* Header: Name & Time */}
-                              <Stack
-                                direction="row"
-                                spacing={1}
-                                alignItems="center"
-                                mb={0.5}
-                                justifyContent={
-                                  isDev ? "flex-end" : "flex-start"
-                                }
+                              <Box
+                                sx={{
+                                  p: 2,
+                                  bgcolor: isDev ? "#0ea5e9" : "#fff",
+                                  color: isDev ? "#fff" : "#1e293b",
+                                  borderRadius: isDev
+                                    ? "16px 16px 2px 16px"
+                                    : "16px 16px 16px 2px",
+                                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                                  border: isDev ? "none" : "1px solid #e2e8f0",
+                                  transition: "transform 0.1s ease",
+                                  "&:active": { transform: "scale(0.98)" },
+                                }}
                               >
-                                {!isDev && (
-                                  <Avatar
-                                    sx={{
-                                      width: 20,
-                                      height: 20,
-                                      fontSize: "9px",
-                                      bgcolor: "#94a3b8",
-                                    }}
-                                  >
-                                    {c.user.name[0]}
-                                  </Avatar>
-                                )}
-                                <Typography
-                                  variant="caption"
-                                  fontWeight={700}
-                                  sx={{
-                                    opacity: isDev ? 0.9 : 1,
-                                    fontSize: "0.7rem",
-                                  }}
+                                {/* Header: Name & Time */}
+                                <Stack
+                                  direction="row"
+                                  spacing={1}
+                                  alignItems="center"
+                                  mb={0.5}
+                                  justifyContent={
+                                    isDev ? "flex-end" : "flex-start"
+                                  }
                                 >
-                                  {c.user.name}
-                                </Typography>
-                                <Typography
-                                  variant="caption"
-                                  sx={{ opacity: 0.6, fontSize: "0.65rem" }}
-                                >
-                                  •{" "}
-                                  {new Date(c.createdAt).toLocaleTimeString(
-                                    [],
-                                    { hour: "2-digit", minute: "2-digit" },
-                                  )}
-                                </Typography>
-                              </Stack>
-
-                              {/* Message Body */}
-                              <Typography
-                                variant="body2"
-                                sx={{ lineHeight: 1.5 }}
-                              >
-                                {c.comment}
-                              </Typography>
-
-                              {/* Attachments Section */}
-                              {c.attachments && c.attachments?.length > 0 && (
-                                <Stack direction="row" spacing={1} mt={1.5}>
-                                  {c.attachments.map((file: any, i: number) => (
-                                    <Box
-                                      key={i}
+                                  {!isDev && (
+                                    <Avatar
                                       sx={{
-                                        borderRadius: "8px",
-                                        overflow: "hidden",
-                                        border: isDev
-                                          ? "1px solid rgba(255,255,255,0.2)"
-                                          : "1px solid #e2e8f0",
+                                        width: 20,
+                                        height: 20,
+                                        fontSize: "9px",
+                                        bgcolor: "#94a3b8",
                                       }}
                                     >
-                                      {file.url ? (
-                                        <img
-                                          src={file.url}
-                                          alt="attachment"
-                                          style={{
-                                            width: 80,
-                                            height: 60,
-                                            objectFit: "cover",
-                                          }}
-                                        />
-                                      ) : (
+                                      {c.user.name[0]}
+                                    </Avatar>
+                                  )}
+                                  <Typography
+                                    variant="caption"
+                                    fontWeight={700}
+                                    sx={{
+                                      opacity: isDev ? 0.9 : 1,
+                                      fontSize: "0.7rem",
+                                    }}
+                                  >
+                                    {c.user.name}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    sx={{ opacity: 0.6, fontSize: "0.65rem" }}
+                                  >
+                                    •{" "}
+                                    {new Date(c.createdAt).toLocaleTimeString(
+                                      [],
+                                      { hour: "2-digit", minute: "2-digit" },
+                                    )}
+                                  </Typography>
+                                </Stack>
+
+                                {/* Message Body */}
+                                <Typography
+                                  variant="body2"
+                                  sx={{ lineHeight: 1.5 }}
+                                >
+                                  {c.comment}
+                                </Typography>
+
+                                {/* Attachments Section */}
+                                {c.attachments && c.attachments?.length > 0 && (
+                                  <Stack direction="row" spacing={1} mt={1.5}>
+                                    {c.attachments.map(
+                                      (file: any, i: number) => (
                                         <Box
+                                          key={i}
                                           sx={{
-                                            p: 0.5,
-                                            bgcolor: isDev
-                                              ? "rgba(255,255,255,0.1)"
-                                              : "#f8fafc",
-                                            display: "flex",
-                                            alignItems: "center",
+                                            borderRadius: "8px",
+                                            overflow: "hidden",
+                                            border: isDev
+                                              ? "1px solid rgba(255,255,255,0.2)"
+                                              : "1px solid #e2e8f0",
                                           }}
                                         >
-                                          <FilePresentIcon
-                                            sx={{ fontSize: 14, mr: 0.5 }}
-                                          />
-                                          <Typography
-                                            variant="caption"
-                                            sx={{ fontSize: "10px" }}
-                                          >
-                                            File
-                                          </Typography>
+                                          {file.url ? (
+                                            <img
+                                              src={file.url}
+                                              alt="attachment"
+                                              style={{
+                                                width: 80,
+                                                height: 60,
+                                                objectFit: "cover",
+                                              }}
+                                            />
+                                          ) : (
+                                            <Box
+                                              sx={{
+                                                p: 0.5,
+                                                bgcolor: isDev
+                                                  ? "rgba(255,255,255,0.1)"
+                                                  : "#f8fafc",
+                                                display: "flex",
+                                                alignItems: "center",
+                                              }}
+                                            >
+                                              <FilePresentIcon
+                                                sx={{ fontSize: 14, mr: 0.5 }}
+                                              />
+                                              <Typography
+                                                variant="caption"
+                                                sx={{ fontSize: "10px" }}
+                                              >
+                                                File
+                                              </Typography>
+                                            </Box>
+                                          )}
                                         </Box>
-                                      )}
-                                    </Box>
-                                  ))}
-                                </Stack>
-                              )}
+                                      ),
+                                    )}
+                                  </Stack>
+                                )}
+                              </Box>
                             </Box>
                           </Box>
                         );
@@ -425,7 +589,79 @@ export const TicketRow = ({ row, initialComments }: TicketRowProps) => {
                       </Box>
                     )}
                   </Box>
+                  <Menu
+                    open={contextMenu !== null}
+                    onClose={handleClose}
+                    anchorReference="anchorPosition"
+                    anchorPosition={
+                      contextMenu !== null
+                        ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+                        : undefined
+                    }
+                    PaperProps={{
+                      sx: {
+                        borderRadius: "12px",
+                        minWidth: 160,
+                        boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
+                        border: "1px solid #e2e8f0",
+                        p: 0.5,
+                      },
+                    }}
+                  >
+                    <MenuItem
+                      onClick={() =>
+                        handleCopy(contextMenu?.comment.comment as string)
+                      }
+                      sx={{
+                        borderRadius: "8px",
+                        gap: 1.5,
+                        fontSize: "0.85rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <ContentCopyIcon
+                        sx={{ fontSize: 18, color: "#64748b" }}
+                      />{" "}
+                      Copy Text
+                    </MenuItem>
 
+                    <MenuItem
+                      onClick={() => {
+                        /* Your Edit Logic */ handleIsEdit(
+                          contextMenu?.comment as Comment,
+                        );
+                      }}
+                      sx={{
+                        borderRadius: "8px",
+                        gap: 1.5,
+                        fontSize: "0.85rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <EditIcon sx={{ fontSize: 18, color: "#0ea5e9" }} /> Edit
+                      Log
+                    </MenuItem>
+
+                    <Divider sx={{ my: 0.5, borderStyle: "dashed" }} />
+
+                    <MenuItem
+                      onClick={() => {
+                        /* Your Delete Logic */ handledelete_comment(
+                          contextMenu?.comment.id as string,
+                        );
+                      }}
+                      sx={{
+                        borderRadius: "8px",
+                        gap: 1.5,
+                        fontSize: "0.85rem",
+                        fontWeight: 600,
+                        color: "#ef4444",
+                        "&:hover": { bgcolor: "#fef2f2" },
+                      }}
+                    >
+                      <DeleteIcon sx={{ fontSize: 18 }} /> Delete Entry
+                    </MenuItem>
+                  </Menu>
                   {/* INPUT ZONE */}
                   <Box
                     sx={{
@@ -509,7 +745,9 @@ export const TicketRow = ({ row, initialComments }: TicketRowProps) => {
                       <Button
                         variant="contained"
                         size="small"
-                        onClick={handleTransmit}
+                        onClick={
+                          isedit.open ? handleEdit_comment : handleTransmit
+                        }
                         endIcon={<SendIcon sx={{ fontSize: 14 }} />}
                         sx={{
                           bgcolor: "#0ea5e9",

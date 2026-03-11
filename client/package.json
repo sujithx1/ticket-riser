@@ -26,6 +26,7 @@
     "@tanstack/react-router-devtools": "^1.166.6",
     "@tanstack/router-plugin": "^1.166.6",
     "axios": "^1.13.6",
+    "copy-to-clipboard": "^3.3.3",
     "lucide-react": "^0.545.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

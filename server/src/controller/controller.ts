@@ -57,8 +57,8 @@ export const PostComments = async (c: Context) => {
   }
 
   const comment_type =
-    authUser.user.role.name === "ADMIN" ||
-    authUser.user.role.name === "DEVELOPER"
+    authUser.user.role_details.name === "ADMIN" ||
+    authUser.user.role_details.name === "DEVELOPER"
       ? "dev-team"
       : "user";
 
@@ -75,9 +75,9 @@ export const PostComments = async (c: Context) => {
       id: IssueCommentsSchema.id,
     });
 
-    if(!inserted) {
-      return c.json({ message: "Something went wrong" }, 500);
-    }
+  if (!inserted) {
+    return c.json({ message: "Something went wrong" }, 500);
+  }
 
   const [comments] = await db
     .select({
@@ -100,23 +100,97 @@ export const PostComments = async (c: Context) => {
     .leftJoin(RoleSchema, eq(RoleSchema.id, UserSchema.role))
     .where(eq(IssueCommentsSchema.id, inserted.id));
 
-    const res={
-      id:comments.id,
-      comment:comments.comment,
-      commentType:comments.commentType,
-      attachments:comments.attachments,
-      createdAt:comments.createdAt,
-      metadata:comments.metadata,
-      user: {
-        id: authUser.user.id,
-        name: authUser.user.name,
-        role: {
-          name: authUser.user.role.name,
-        },
+  const res = {
+    id: comments.id,
+    comment: comments.comment,
+    commentType: comments.commentType,
+    attachments: comments.attachments,
+    createdAt: comments.createdAt,
+    metadata: comments.metadata,
+    user: {
+      id: authUser.user.id,
+      name: authUser.user.name,
+      role: {
+        name: authUser.user.role.name,
       },
-    }
+    },
+  };
+
+  return c.json({ message: "success", data: res }, 201);
+};
+
+const UpdateCommentsSchema = z.object({
+  id: z.string(),
+  comment: z.string().optional(),
+  attachments: z
+    .array(z.object({ url: z.string(), name: z.string() }))
+    .optional(),
+});
+
+export const PuntComment = async (c: Context) => {
+  const body = UpdateCommentsSchema.parse(await c.req.json());
+
+  const { id, comment, attachments } = body;
+
+  const authUser = getAuthSession(c);
+  const [data] = await db
+    .update(IssueCommentsSchema)
+    .set({
+      comment,
+    })
+    .where(eq(IssueCommentsSchema.id, id))
+    .returning({
+      id: IssueCommentsSchema.id,
+    });
+
+  if (!data) return c.json({ message: "Something went wrong" }, 500);
+
+  const [comments] = await db
+    .select({
+      id: IssueCommentsSchema.id,
+      comment: IssueCommentsSchema.comment,
+      commentType: IssueCommentsSchema.commentType,
+      attachments: IssueCommentsSchema.attachments,
+      createdAt: IssueCommentsSchema.createdAt,
+      metadata: IssueCommentsSchema.metadata,
+      // user: {
+      //   id: UserSchema.id,
+      //   name: UserSchema.name,
+      //   role: {
+      //     name: RoleSchema.name,
+      //   },
+      // },
+    })
+    .from(IssueCommentsSchema)
+    .leftJoin(UserSchema, eq(UserSchema.id, IssueCommentsSchema.userId))
+    .leftJoin(RoleSchema, eq(RoleSchema.id, UserSchema.role))
+    .where(eq(IssueCommentsSchema.id, data.id));
+
+  const res = {
+    id: comments.id,
+    comment: comments.comment,
+    commentType: comments.commentType,
+    attachments: comments.attachments,
+    createdAt: comments.createdAt,
+    metadata: comments.metadata,
+    user: {
+      id: authUser.user.id,
+      name: authUser.user.name,
+      role: {
+        name: authUser.user.role.name,
+      },
+    },
+  };
+  return c.json({ message: "success", data: res }, 200);
+};
+
+const DeleteCommentSchema = z.object({ id: z.string() });
+export const DeleteComment = async (c: Context) => {
+
+  const id=DeleteCommentSchema.parse(c.req.query()).id;
 
 
+  await db.delete(IssueCommentsSchema).where(eq(IssueCommentsSchema.id, id));
 
-  return c.json({ message: "success" ,data:res}, 201);
+return c.json({ message: "Comment deleted successfully" }, 200);
 };

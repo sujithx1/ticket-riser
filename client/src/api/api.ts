@@ -76,7 +76,7 @@ export const UsePostComment = () => {
       }[];
     }) => {
       const res = await api.post<AxiosResponse<Comment>>("/comment", data);
-      return res.data.data 
+      return res.data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
@@ -86,3 +86,32 @@ export const UsePostComment = () => {
     },
   });
 };
+
+export const UsePutComment = () => {
+  return useMutation({
+    mutationFn: async (data: { id: string; comment: string }) => {
+      const res = await api.put<AxiosResponse<Comment>>("/comment", data);
+      return res.data.data;
+    },
+
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+};
+
+
+export const UseDeleteComment = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.delete("/comment", {
+        params: { id },
+      });
+      return res.data.data;
+    },
+
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+};  
