@@ -111,7 +111,7 @@ export const PostComments = async (c: Context) => {
       id: authUser.user.id,
       name: authUser.user.name,
       role: {
-        name: authUser.user.role.name,
+        name: authUser.user.role_details.name,
       },
     },
   };
@@ -177,7 +177,7 @@ export const PuntComment = async (c: Context) => {
       id: authUser.user.id,
       name: authUser.user.name,
       role: {
-        name: authUser.user.role.name,
+        name: authUser.user.role_details.name,
       },
     },
   };
