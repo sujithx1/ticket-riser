@@ -73,7 +73,7 @@ function App() {
     
     <AuthGate>
 
-    <TicketDashboard initialIssues={MOCK_ISSUES} commentsData={MOCK_COMMENTS} />
+    <TicketDashboard  />
     </AuthGate>
     </>
    

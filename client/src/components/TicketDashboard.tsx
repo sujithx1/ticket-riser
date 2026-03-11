@@ -1,5 +1,5 @@
-import { UsePostTicket } from "@/api/api";
-import type { CreateTicketFormValues, Issue } from "@/types/types";
+import { UseGetTickets, UsePostTicket } from "@/api/api";
+import type { CreateTicketFormValues } from "@/types/types";
 import AddIcon from "@mui/icons-material/Add";
 import {
   Box,
@@ -25,12 +25,12 @@ import { TicketRow } from "./TicketRow";
 //   commentsData: Record<string, Comment[]>;
 // }
 
-export default function TicketDashboard({ initialIssues, commentsData }: any) {
+export default function TicketDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const postcreateticketMuntation = UsePostTicket();
   // Maintain local state for issues so Sujith's new tickets show up immediately
-  const [issues, setIssues] = useState<Issue[]>(initialIssues);
 
+  const { data: issues } = UseGetTickets({});
   const handleNewTicket = (data: CreateTicketFormValues) => {
     // 1. Prepare the new issue object (matching Drizzle schema)
     // const newIssue = {
@@ -49,13 +49,11 @@ export default function TicketDashboard({ initialIssues, commentsData }: any) {
     // write api call
 
     postcreateticketMuntation.mutate(data, {
-      onSuccess: (newdata) => {
+      onSuccess: () => {
         toast.success("Ticket created successfully");
-        setIssues((prev) => [newdata, ...prev]);
       },
       onError: (error) => {
         console.log(error);
-        toast.error(error.message);
       },
     });
 
@@ -109,12 +107,17 @@ export default function TicketDashboard({ initialIssues, commentsData }: any) {
               <TableCell
                 sx={{ fontWeight: 800, color: "#64748b", fontSize: "0.75rem" }}
               >
-                UUID
+                CREATOR
               </TableCell>
               <TableCell
                 sx={{ fontWeight: 800, color: "#64748b", fontSize: "0.75rem" }}
               >
-                SUBJECT_INTEL
+                DATE
+              </TableCell>
+              <TableCell
+                sx={{ fontWeight: 800, color: "#64748b", fontSize: "0.75rem" }}
+              >
+                SUBJECT
               </TableCell>
               <TableCell
                 sx={{ fontWeight: 800, color: "#64748b", fontSize: "0.75rem" }}
@@ -134,7 +137,7 @@ export default function TicketDashboard({ initialIssues, commentsData }: any) {
                 <TicketRow
                   key={row.id}
                   row={row}
-                  initialComments={commentsData[row.id] || []}
+                  initialComments={row.comments}
                 />
               ))
             ) : (

@@ -1,5 +1,6 @@
+import { handleError } from "@/axios/error";
 import { api } from "@/axios/instance";
-import type { CreateTicketFormValues, Issue } from "@/types/types";
+import type { Comment, CreateTicketFormValues, Issue } from "@/types/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -36,6 +37,11 @@ export const UsePostTicket = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
     },
+    onError: (error) => {
+      handleError(error);
+
+      console.log("api -errorrrr ", error);
+    },
   });
 };
 
@@ -54,6 +60,29 @@ export const UseGetTickets = (filter: Paginations) => {
         params: filter,
       });
       return res.data.data;
+    },
+  });
+};
+
+export const UsePostComment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      issueId: string;
+      comment: string;
+      attachments?: {
+        url: string;
+        name: string;
+      }[];
+    }) => {
+      const res = await api.post<AxiosResponse<Comment>>("/comment", data);
+      return res.data.data 
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["issues"] });
+    },
+    onError: (error) => {
+      handleError(error);
     },
   });
 };

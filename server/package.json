@@ -6,7 +6,7 @@
     "migrate": "bunx drizzle-kit migrate"
   },
   "dependencies": {
-    "@magadhtech/mds-schema": "^1.0.172",
+    "@magadhtech/mds-schema": "^1.0.189",
     "@types/pg": "^8.16.0",
     "drizzle-kit": "^0.31.8",
     "drizzle-orm": "^0.45.1",

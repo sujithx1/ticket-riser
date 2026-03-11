@@ -13,7 +13,10 @@ type User = {
   aadhar_no: string | null;
   pan_no: string | null;
   max_login: number;
-  role: string;
+  role: {
+    id: string;
+    name: string;
+  };
 };
 export type UserSession = {
   user: User;
@@ -23,7 +26,7 @@ export type UserSession = {
 export const authenticate = async (c: Context, next: Next) => {
   const app_session_id = c.req.header('app-session-id');
   if (!app_session_id) {
-    if (isDev()) return await next();
+    // if (isDev()) return await next();
     return c.json({ message: 'Token Missing header' }, 401);
   }
 

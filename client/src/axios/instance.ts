@@ -1,3 +1,4 @@
+import { getSessionId } from "@/api/auth.api";
 import axios from "axios";
 
 export const api = axios.create({
@@ -5,7 +6,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token =getSessionId();
   if (token) {
     // config.headers.Authorization=`Bearer ${token}`
 
