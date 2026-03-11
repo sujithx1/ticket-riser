@@ -13,10 +13,12 @@ type User = {
   aadhar_no: string | null;
   pan_no: string | null;
   max_login: number;
-  role: {
-    id: string;
-    name: string;
-  };
+  role:string;
+  role_details:{
+    id:string;
+    name:string;
+  }
+
 };
 export type UserSession = {
   user: User;

@@ -9,7 +9,12 @@ import { desc, eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { Hono } from "hono";
 import z from "zod";
-import { getDevelopers, PostComments } from "../controller/controller";
+import {
+  DeleteComment,
+  getDevelopers,
+  PostComments,
+  PuntComment,
+} from "../controller/controller";
 import { db } from "../db/db";
 import { PrettierErorr } from "../helper";
 import { authenticate, getAuthSession } from "../middleware/auth.middleware";
@@ -164,3 +169,5 @@ json_build_object(
 
 router.get("/developers", getDevelopers);
 router.post("/comment", PostComments);
+router.put("/comment", PuntComment);
+router.delete("/comment", DeleteComment);
